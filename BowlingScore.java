@@ -1,115 +1,80 @@
+import java.util.*;
+
 class BowlingScore {
 	public static void main(String[] Args) throws RuntimeException {
+		String game_string = "X|7/|9-|X|-8|8/|-6|X|X|X||81";
+		if (Args.length >= 1)
+		{
+			// Turns out java doesn't have the first argument as the program name like C++ or something.
+			System.out.println("Game passed: " + Args[0]);
+			game_string = Args[0];
+		}
+		int game_score = scoreGame(game_string);
+		System.out.format("Total score: %d\n", game_score);
 	}
 
-	public int[] scoreFrame(String frame) throws RuntimeException {
-		// A frame score would possibly be better implemented as a separate class or a Map.
-		// Returning these variables as an array makes it unclear which is which
-		// unless you look at this code.
-		int first_ball = 0;
-		int second_ball = 0;
-		int frame_total = 0;
-		int balls_left = 3-frame.length()
-		if (frame[0] == 'X') {
-			first_ball = 10;
-		}
-		else if (frame[0] == '-') {
-			first_ball = 0;
-		}
-		else
-		{
-			try {
-				first_ball = Integer.valueOf(frame.substring(0,1));
-			}
-			catch (NumberFormatException e)
-			{
-				// Not an integer and not a miss or strike. Invalid frame.
-				e2 = new RuntimeException("Invalid frame: " + frame);
-				throw e2;
-			}
+	public static int scoreGame(String game) throws RuntimeException {
+		String[] frames = game.split("\\|{1,2}");
+		List<Integer> balls = new ArrayList<Integer>();
+		List<Integer> frame_scores = new ArrayList<Integer>();
+		List<Integer> frame_balls = new ArrayList<Integer>();
+
+		for (String i : frames) {
+			System.out.println(i);
 		}
 
-		for (int i = 1; i < frame.length; i++)
-		{
-			if (frame[0] == '/') {
-				frame_total = 10;
-			}
-			else if (frame[0] == '-') {
-				// Frame total is unchanged.
-			}
-			else
-			{
-				try {
-					frame_total = frame_total + Integer.valueOf(frame.substring(0,1));
-				}
-				catch (NumberFormatException e)
-				{
-					// Not an integer and not a miss or strike. Invalid frame.
-					e2 = new RuntimeException("Invalid frame: " + frame);
-					throw e2;
-				}
-			}
-
-
-		}
-
-		return {first_ball, second_ball, frame_total, balls_left};
-	}
-
-	public int scoreGame(String game) throws RuntimeException {
-		String[] frames = game.split("|{1,2}");
-		List<int[]> frame_info = new List<int[]>();
 		int total_score = 0;
+		int current_ball = 0;
 
 		if (frames.length < 10) {
-			RuntimeException e = new RuntimeException("Less than 10 frames, not a valid game.");
+			RuntimeException e = new RuntimeException("Not enough frames.");
 			throw e;
 		}
-		else if (frames.length > 12) {
-			RuntimeException e = new RuntimeException("More than 12 frames, not a valid game.");
-			throw e;
-		}
-		for (int i = 0; i < balls.size(); i++) {
-			if (i < 10) {
-				int[] frame_score = scoreFrame(frames[i]);
-				frame_info.add(frame_score);
-			}
-			if (i == 10 && frames.length >= 11) {
-				if (frames[i].length > 0) {
-					RuntimeException e = new RuntimeException("More than 10 normal frames, not a valid game.");
-					throw e;
+		for (String i : frames) {
+			String[] frame = i.split("(?!^)");
+			for (String ball : frame) {
+				if (ball.equals("X")) {
+					balls.add(10);
 				}
-			}
-			if (i == 11 ** frames.length == 12) {
-				String final_frame = frames[11];
-
-				for (int j = 0; j < 2 && j < frames[11].length; j++)
-				{
-					if (final_frame[j] == '/') {
-						frame_info.add({10});
+				else if (ball.equals("-")) {
+					balls.add(0);
+				}
+				else if (current_ball > 0 && ball.equals("/")) {
+					balls.add(10 - balls.get(balls.size()-1));
+				}
+				else {
+					try {
+						balls.add(Integer.valueOf(ball));
 					}
-					else if (frame[0] == '-') {
-						frame_info.add({0});
-					}
-					else
-					{
-						try {
-							frame_total = frame_total + Integer.valueOf(frame.substring(0,1));
-						}
-						catch (NumberFormatException e)
-						{
-							// Not an integer and not a miss or strike. Invalid frame.
-							e2 = new RuntimeException("Invalid frame: " + final_frame);
-							throw e2;
-						}
+					catch (NumberFormatException e) {
+						RuntimeException e2 = new RuntimeException("Invalid ball: " + ball);
+						throw e2;
 					}
 				}
+				current_ball++;
 			}
 		}
-		// Ball scores determined. Add them up properly to get final score.
-		for (int i = 0; i < 10; i++)
-		{
+		current_ball = 0;
+		for (int current_frame = 0; current_frame < frames.length; current_frame++) {
+			frame_balls.add(frames[current_frame].length());
+			int frame_score = 0;
+			for (int frame_ball = 0; frame_ball < frames[current_frame].length(); frame_ball++, current_ball++) {
+				frame_score += balls.get(current_ball);
+			}
+			frame_scores.add(frame_score);
 		}
-
+		current_ball = 0;
+		for (int current_frame = 0; current_frame < 10; current_frame++) {
+			int score_added = 0;
+			score_added += frame_scores.get(current_frame);
+			current_ball += frame_balls.get(current_frame);
+			if (frame_scores.get(current_frame) == 10) {
+				for (int i = 0; i < (3 - frames[current_frame].length()) && i+current_ball < balls.size(); i++) {
+					score_added += balls.get(current_ball+i);
+				}
+			}
+			total_score += score_added;
+		}
+		return total_score;
 	}
 }
